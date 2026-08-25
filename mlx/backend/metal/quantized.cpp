@@ -799,7 +799,10 @@ void qmm(
     metal::Device& d,
     const Stream& s,
     const std::string& mode) {
-  if (metal::is_nax_available() && transpose && (K % 64 == 0) &&
+  bool has_nax_kernel =
+      metal::is_nax_available() && (transpose || mode == "affine");
+  bool nax_aligned = (K % 64 == 0) && (transpose || N % 64 == 0);
+  if (has_nax_kernel && nax_aligned &&
       (env::enable_tf32() || x.dtype() != float32)) {
     return qmm_nax(
         /* const array& x = */ x,
